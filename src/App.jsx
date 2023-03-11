@@ -4,6 +4,8 @@ import { appWindow } from "@tauri-apps/api/window";
 import Station from "./station";
 import Player from "./player";
 import Search from "./Search";
+import Header from "./Header";
+import Loader from "./Loader";
 
 async function invokeStreamEvents() {
   await invoke("stream_events", { window: appWindow });
@@ -16,6 +18,7 @@ function App() {
   const [stations, setStations] = createSignal([]);
   const [currentStation, setCurrentStation] = createSignal(undefined);
   const [title, setTitle] = createSignal("");
+  const [pending, setPending] = createSignal(false);
 
   appWindow.listen(
     'title_event',
@@ -23,7 +26,10 @@ function App() {
   );
 
   async function searchStations(query) {
-    setStations(await invoke("search_stations", { stationsQuery: { name: query.name, limit: query.limit } }));
+    setPending(true)
+    const stations = await invoke("search_stations", { stationsQuery: { name: query.name, limit: query.limit } })
+    setStations(stations)
+    setPending(false)
   }
 
   const setCurrent = (station) => {
@@ -34,8 +40,9 @@ function App() {
   return (
     <>
       <div class="mb-20 flex flex-col">
-        <Search search={searchStations} />
-        <div class="grow grid grid-cols-2">
+        <Header><Search search={searchStations} /></Header>
+        <Loader pending={pending()}/>
+        <div class="grow grid grid-cols-2 pt-4">
           <For each={stations()}>
             {(station) => <Station station={station} setCurrent={setCurrent} />}
           </For>
@@ -43,7 +50,7 @@ function App() {
       </div>
       <Player currentStation={currentStation()} currentTitle={title()} />
     </>
-  );
+  )
 }
 
 export default App;

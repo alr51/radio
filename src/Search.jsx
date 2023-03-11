@@ -10,8 +10,7 @@ const Search = (props) => {
   }
 
   return (
-    <form onSubmit={submitSearch}>
-      <div class="w-full h-20 bg-black border-b border-neutral-800 flex items-center justify-center mb-4">
+    <form onSubmit={submitSearch} class="flex items-center justify-center">
         <input
           type="text"
           class="bg-neutral-900 rounded-lg py-1 pl-2"
@@ -20,7 +19,6 @@ const Search = (props) => {
         <button class="ml-4 hover:text-green-500">
           <HiOutlineSearch class="h-6 w-6" />
         </button>
-      </div>
     </form>
   )
 }
