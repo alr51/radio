@@ -1,4 +1,4 @@
-import { HiOutlineSearch } from "solid-icons/hi"
+import { HiOutlineSearch, HiOutlineHeart } from "solid-icons/hi"
 import { createSignal } from "solid-js"
 
 const Search = (props) => {
@@ -7,6 +7,10 @@ const Search = (props) => {
   function submitSearch(e) {
     e.preventDefault()
     props.search(query())
+  }
+
+  function bookmarkList() {
+    props.bookmarkList()
   }
 
   return (
@@ -18,6 +22,9 @@ const Search = (props) => {
         />
         <button class="ml-4 hover:text-green-500">
           <HiOutlineSearch class="h-6 w-6" />
+        </button>
+        <button  type="button" class="ml-4 hover:text-red-500" onClick={bookmarkList}>
+          <HiOutlineHeart class="h-6 w-6" />
         </button>
     </form>
   )

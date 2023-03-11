@@ -6,6 +6,7 @@
 use std::sync::Mutex;
 
 use anyhow::Result;
+use db::Db;
 use player::Player;
 use tauri::{Manager, Window};
 use tuner::{Station, StationsSearchQuery, Tuner};
@@ -14,10 +15,12 @@ use gstreamer::prelude::ObjectExt;
 
 mod player;
 mod tuner;
+mod db;
 
 struct RadioState {
     tuner: Mutex<Tuner>,
     player: Mutex<Player>,
+    db: Mutex<Db>
 }
 
 #[tauri::command]
@@ -32,6 +35,15 @@ fn search_stations(state: tauri::State<RadioState>, stations_query: StationsSear
         return stations.to_vec();
     }
     vec![]
+}
+
+#[tauri::command]
+fn play_station(state: tauri::State<RadioState>, station: Station) {
+    let _ = state
+        .player
+        .lock()
+        .expect("no player found")
+        .play_station(station);
 }
 
 #[tauri::command]
@@ -74,18 +86,23 @@ fn stream_events(state: tauri::State<RadioState>, window: Window) {
 }
 
 #[tauri::command]
-fn play_station(state: tauri::State<RadioState>, station: Station) {
-    let _ = state
-        .player
-        .lock()
-        .expect("no player found")
-        .play_station(station);
+fn bookmark_station(state: tauri::State<RadioState>, station: Station) {
+    let _ = state.db.lock().unwrap().bookmark_station(station);
+}
+
+#[tauri::command]
+fn bookmark_stations_list(state: tauri::State<RadioState>) -> Vec<Station> {
+    if let Ok(stations) = state.db.lock().unwrap().bookmark_stations_list() {
+        return stations;
+    }
+    vec![]
 }
 
 fn main() -> Result<()> {
     let state = RadioState {
         tuner: Mutex::new(Tuner::new()?),
         player: Mutex::new(Player::new()),
+        db: Mutex::new(Db::new()),
     };
     tauri::Builder::default()
         .setup(|app| {
@@ -108,6 +125,8 @@ fn main() -> Result<()> {
             play,
             pause,
             stream_events,
+            bookmark_station,
+            bookmark_stations_list
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

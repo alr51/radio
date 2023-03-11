@@ -32,6 +32,13 @@ function App() {
     setPending(false)
   }
 
+  async function bookmarkList() {
+    setPending(true)
+    const stations = await invoke("bookmark_stations_list")
+    setStations(stations)
+    setPending(false)
+  }
+
   const setCurrent = (station) => {
     setTitle("");
     setCurrentStation(station)
@@ -40,7 +47,7 @@ function App() {
   return (
     <>
       <div class="mb-20 flex flex-col">
-        <Header><Search search={searchStations} /></Header>
+        <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
         <Loader pending={pending()}/>
         <div class="grow grid grid-cols-2 pt-4">
           <For each={stations()}>
