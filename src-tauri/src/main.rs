@@ -3,99 +3,23 @@
     windows_subsystem = "windows"
 )]
 
-use std::sync::Mutex;
-
-use anyhow::Result;
-use db::Db;
-use player::Player;
-use tauri::{Manager, Window};
-use tuner::{Station, StationsSearchQuery, Tuner};
-
-use gstreamer::prelude::ObjectExt;
-
+mod commands;
+mod db;
 mod player;
 mod tuner;
-mod db;
 
-struct RadioState {
+use anyhow::Result;
+use commands::*;
+use db::Db;
+use player::Player;
+use std::sync::Mutex;
+use tauri::Manager;
+use tuner::Tuner;
+
+pub struct RadioState {
     tuner: Mutex<Tuner>,
     player: Mutex<Player>,
-    db: Mutex<Db>
-}
-
-#[tauri::command]
-fn search_stations(state: tauri::State<RadioState>, stations_query: StationsSearchQuery) -> Vec<Station> {
-    // println!("search_stations");
-    if let Ok(stations) = state
-        .tuner
-        .lock()
-        .expect("no tuner found")
-        .search(stations_query)
-    {
-        return stations.to_vec();
-    }
-    vec![]
-}
-
-#[tauri::command]
-fn play_station(state: tauri::State<RadioState>, station: Station) {
-    let _ = state
-        .player
-        .lock()
-        .expect("no player found")
-        .play_station(station);
-}
-
-#[tauri::command]
-fn pause(state: tauri::State<RadioState>) {
-    let _ = state.player.lock().expect("no player found").pause();
-}
-
-#[tauri::command]
-fn play(state: tauri::State<RadioState>) {
-    let _ = state.player.lock().expect("no player found").play();
-}
-
-#[tauri::command]
-fn stream_events(state: tauri::State<RadioState>, window: Window) {
-    state
-        .player
-        .lock()
-        .unwrap()
-        .pipeline
-        .connect("audio-tags-changed", false, move |values| {
-            let playbin = values[0]
-                .get::<gstreamer::glib::Object>()
-                .expect("playbin \"audio-tags-changed\" signal values[1]");
-
-            let idx = values[1]
-                .get::<i32>()
-                .expect("playbin \"audio-tags-changed\" signal values[1]");
-
-            let tags =
-                playbin.emit_by_name::<Option<gstreamer::TagList>>("get-audio-tags", &[&idx]);
-
-            if let Some(tags) = tags {
-                if let Some(title) = tags.get::<gstreamer::tags::Title>() {
-                    window.emit("title_event", title.get()).unwrap();
-                }
-            }
-
-            None
-        });
-}
-
-#[tauri::command]
-fn bookmark_station(state: tauri::State<RadioState>, station: Station) {
-    let _ = state.db.lock().unwrap().bookmark_station(station);
-}
-
-#[tauri::command]
-fn bookmark_stations_list(state: tauri::State<RadioState>) -> Vec<Station> {
-    if let Ok(stations) = state.db.lock().unwrap().bookmark_stations_list() {
-        return stations;
-    }
-    vec![]
+    db: Mutex<Db>,
 }
 
 fn main() -> Result<()> {
@@ -104,6 +28,7 @@ fn main() -> Result<()> {
         player: Mutex::new(Player::new()),
         db: Mutex::new(Db::new()),
     };
+
     tauri::Builder::default()
         .setup(|app| {
             let splashscreen_window = app.get_window("splashscreen").unwrap();
