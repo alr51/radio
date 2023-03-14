@@ -1,17 +1,32 @@
-use tauri::{Window, State};
+use crate::{
+    tuner::{Station, StationsSearchQuery},
+    RadioState,
+};
 use gstreamer::prelude::ObjectExt;
-use crate::{RadioState, tuner::{StationsSearchQuery, Station}};
-
+use tauri::{State, Window};
 
 #[tauri::command]
-pub fn search_stations(state: State<RadioState>, stations_query: StationsSearchQuery) -> Vec<Station> {
+pub fn search_stations(
+    state: State<RadioState>,
+    stations_query: StationsSearchQuery,
+) -> Vec<Station> {
     // println!("search_stations");
-    if let Ok(stations) = state
+    if let Ok(mut stations) = state
         .tuner
         .lock()
         .expect("no tuner found")
         .search(stations_query)
     {
+        let stations_uuid: Vec<_> = stations
+            .iter()
+            .map(|station| station.stationuuid.clone())
+            .collect();
+        let bookmarked_stations_uuid = state.db.lock().unwrap().bookmark_stations_for_stationuuid_list(stations_uuid);
+        if let Ok(bookmarked_station) = bookmarked_stations_uuid {
+            for station in stations.iter_mut() {
+                station.bookmarked = bookmarked_station.contains(&station.stationuuid);
+            }
+        }
         return stations.to_vec();
     }
     vec![]

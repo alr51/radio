@@ -6,7 +6,6 @@ use trust_dns_resolver::Resolver;
 
 pub struct Tuner {
     api_endpoint: String,
-    pub current_station: Option<Station>,
 }
 
 impl Tuner {
@@ -32,7 +31,6 @@ impl Tuner {
 
         Ok(Tuner {
             api_endpoint: endpoint.to_string(),
-            current_station: None,
         })
     }
 
@@ -44,11 +42,6 @@ impl Tuner {
             query.limit
         ))?
         .json::<Vec<Station>>()?;
-
-        if let Some(station) = stations.get(0) {
-            let station = (*station).clone();
-            self.current_station = Some(station);
-        }
 
         Ok(stations)
     }
@@ -67,6 +60,8 @@ pub struct Station {
     pub codec: String,
     pub bitrate: u16,
     pub votes: u64,
+    #[serde(default)]
+    pub bookmarked: bool
 }
 
 #[derive(Debug, Deserialize, Serialize)]

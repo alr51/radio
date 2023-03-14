@@ -68,10 +68,37 @@ impl Db {
                 bitrate: 0,
                 codec: String::from(""),
                 votes: 0,
+                bookmarked: true,
             })
         })?;
 
         let mut stations: Vec<Station> = vec![];
+        for station in rows {
+            if let Ok(station) = station {
+                stations.push(station);
+            }
+        }
+
+        Ok(stations)
+    }
+
+    pub fn bookmark_stations_for_stationuuid_list(
+        &self,
+        stationuuid_list: Vec<String>,
+    ) -> Result<Vec<String>> {
+
+        if stationuuid_list.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let mut s = "?,".repeat(stationuuid_list.len());
+        s.pop();
+
+        let mut stmt = self.con.prepare(&format!("SELECT stationuuid FROM bookmarked_stations WHERE stationuuid IN ({})",s))?;
+
+        let rows = stmt.query_map(rusqlite::params_from_iter(stationuuid_list), |row| row.get(0))?;
+
+        let mut stations: Vec<String> = vec![];
         for station in rows {
             if let Ok(station) = station {
                 stations.push(station);
