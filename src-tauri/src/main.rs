@@ -51,6 +51,7 @@ fn main() -> Result<()> {
             pause,
             stream_events,
             bookmark_station,
+            remove_bookmark_station,
             bookmark_stations_list
         ])
         .run(tauri::generate_context!())

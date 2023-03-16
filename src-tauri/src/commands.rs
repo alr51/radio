@@ -86,6 +86,11 @@ pub fn bookmark_station(state: State<RadioState>, station: Station) {
 }
 
 #[tauri::command]
+pub fn remove_bookmark_station(state: State<RadioState>, station: Station) {
+    let _ = state.db.lock().unwrap().remove_bookmark_station(station);
+}
+
+#[tauri::command]
 pub fn bookmark_stations_list(state: State<RadioState>) -> Vec<Station> {
     if let Ok(stations) = state.db.lock().unwrap().bookmark_stations_list() {
         return stations;

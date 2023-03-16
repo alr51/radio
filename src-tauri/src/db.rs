@@ -51,6 +51,13 @@ impl Db {
         )?;
         Ok(())
     }
+    pub fn remove_bookmark_station(&self, station: Station) -> Result<()> {
+        self.con.execute(
+            "DELETE FROM bookmarked_stations WHERE stationuuid = ?1",
+            (station.stationuuid,),
+        )?;
+        Ok(())
+    }
 
     pub fn bookmark_stations_list(&self) -> Result<Vec<Station>> {
         let mut stmt = self.con.prepare("SELECT stationuuid, name, url, url_resolved, homepage, favicon, tags, countrycode FROM bookmarked_stations")?;
@@ -86,7 +93,6 @@ impl Db {
         &self,
         stationuuid_list: Vec<String>,
     ) -> Result<Vec<String>> {
-
         if stationuuid_list.is_empty() {
             return Ok(vec![]);
         }
@@ -94,9 +100,14 @@ impl Db {
         let mut s = "?,".repeat(stationuuid_list.len());
         s.pop();
 
-        let mut stmt = self.con.prepare(&format!("SELECT stationuuid FROM bookmarked_stations WHERE stationuuid IN ({})",s))?;
+        let mut stmt = self.con.prepare(&format!(
+            "SELECT stationuuid FROM bookmarked_stations WHERE stationuuid IN ({})",
+            s
+        ))?;
 
-        let rows = stmt.query_map(rusqlite::params_from_iter(stationuuid_list), |row| row.get(0))?;
+        let rows = stmt.query_map(rusqlite::params_from_iter(stationuuid_list), |row| {
+            row.get(0)
+        })?;
 
         let mut stations: Vec<String> = vec![];
         for station in rows {
