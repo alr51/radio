@@ -2,7 +2,7 @@ use crate::{
     tuner::{Station, StationsSearchQuery},
     RadioState,
 };
-use gstreamer::prelude::ObjectExt;
+use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
 use tauri::{State, Window};
 
 #[tauri::command]
@@ -21,7 +21,11 @@ pub fn search_stations(
             .iter()
             .map(|station| station.stationuuid.clone())
             .collect();
-        let bookmarked_stations_uuid = state.db.lock().unwrap().bookmark_stations_for_stationuuid_list(stations_uuid);
+        let bookmarked_stations_uuid = state
+            .db
+            .lock()
+            .unwrap()
+            .bookmark_stations_for_stationuuid_list(stations_uuid);
         if let Ok(bookmarked_station) = bookmarked_stations_uuid {
             for station in stations.iter_mut() {
                 station.bookmarked = bookmarked_station.contains(&station.stationuuid);
@@ -58,26 +62,21 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
         .lock()
         .unwrap()
         .pipeline
-        .connect("audio-tags-changed", false, move |values| {
-            let playbin = values[0]
-                .get::<gstreamer::glib::Object>()
-                .expect("playbin \"audio-tags-changed\" signal values[1]");
-
-            let idx = values[1]
-                .get::<i32>()
-                .expect("playbin \"audio-tags-changed\" signal values[1]");
-
-            let tags =
-                playbin.emit_by_name::<Option<gstreamer::TagList>>("get-audio-tags", &[&idx]);
-
-            if let Some(tags) = tags {
-                if let Some(title) = tags.get::<gstreamer::tags::Title>() {
-                    window.emit("title_event", title.get()).unwrap();
+        .bus()
+        .unwrap()
+        .add_watch(move |_, message| {
+            // println!("message : {:?}", message);
+            match message.view() {
+                MessageView::Tag(tag) => {
+                    if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
+                        window.emit("title_event", t.get()).unwrap();
+                    }
                 }
+                _ => (),
             }
-
-            None
-        });
+            Continue(true)
+        })
+        .expect("message watch problem");
 }
 
 #[tauri::command]
