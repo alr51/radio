@@ -6,6 +6,7 @@ import Player from "./player";
 import Search from "./Search";
 import Header from "./Header";
 import Loader from "./Loader";
+import Visualizer from "./Visualizer";
 
 async function invokeStreamEvents() {
   await invoke("stream_events", { window: appWindow });
@@ -44,13 +45,14 @@ function App() {
     setCurrentStation(station)
   }
 
-  onMount(()=>bookmarkList())
+  onMount(() => bookmarkList())
 
   return (
     <>
       <div class="mb-20 flex flex-col">
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
-        <Loader pending={pending()}/>
+        <Visualizer />
+        <Loader pending={pending()} />
         <div class="grow grid grid-cols-2 m-4 gap-6">
           <For each={stations()}>
             {(station) => <Station station={station} setCurrent={setCurrent} />}

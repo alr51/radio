@@ -2,7 +2,7 @@ use crate::{
     tuner::{Station, StationsSearchQuery},
     RadioState,
 };
-use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
+use gstreamer::{prelude::Continue, traits::ElementExt, Message, MessageView};
 use tauri::{State, Window};
 
 #[tauri::command]
@@ -70,6 +70,17 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
                 MessageView::Tag(tag) => {
                     if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
                         window.emit("title_event", t.get()).unwrap();
+                    }
+                }
+                MessageView::Element(element) => {
+                    if let Some(structure) = element.structure() {
+                        if structure.name() == "spectrum" {
+                            let magnitude = structure.get::<gstreamer::List>("magnitude").unwrap();
+                            let m:Vec<_> = magnitude.iter().map(|db| {
+                                db.get::<f32>().unwrap_or(0.0)
+                            }).collect();
+                            window.emit("spectrum_event", m).unwrap();
+                        }
                     }
                 }
                 _ => (),

@@ -14,9 +14,10 @@ impl Player {
     pub fn new() -> Self {
         gstreamer::init().expect("Failed to initialize gstreamer");
 
-        let pipeline =
-            // gstreamer::parse_launch("playbin").expect("Failed create gstreamer pipeline");
-        gstreamer::parse_launch("uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! autoaudiosink").expect("failed to create gstreamer pipeline");
+        let pipeline = gstreamer::parse_launch(
+            "uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! spectrum bands=64 threshold=-80 interval=50000000 ! autoaudiosink",
+        )
+        .expect("failed to create gstreamer pipeline");
 
         let pipeline = pipeline.downcast::<gstreamer::Pipeline>().unwrap();
 
