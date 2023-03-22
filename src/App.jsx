@@ -51,7 +51,6 @@ function App() {
     <>
       <div class="mb-20 flex flex-col">
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
-        <Visualizer />
         <Loader pending={pending()} />
         <div class="grow grid grid-cols-2 m-4 gap-6">
           <For each={stations()}>
@@ -59,6 +58,7 @@ function App() {
           </For>
         </div>
       </div>
+      <Visualizer />
       <Player currentStation={currentStation()} currentTitle={title()} />
     </>
   )
