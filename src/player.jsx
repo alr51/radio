@@ -22,16 +22,15 @@ const Player = (props) => {
   }
 
   return (
-    <div class="fixed bottom-0 h-20 w-full bg-black border-t border-neutral-800 grid grid-cols-3">
+    <div class="fixed bottom-0 h-20 w-full bg-black border-t border-neutral-800 grid grid-cols-9">
       <Show when={props.currentStation}>
         <CurrentStation station={props.currentStation} />
-
         <div class="flex items-center justify-center">
           <button onClick={() => toggle()} class="h-fit w-fit hover:text-white">
             {playing() ? <HiSolidPause class="h-16 w-16" /> : <HiSolidPlay class="h-16 w-16" />}
           </button>
         </div>
-        <div class="flex items-center">{props.currentTitle}</div>
+        <div class="col-span-4 flex items-center">{props.currentTitle}</div>
       </Show>
     </div>
   )

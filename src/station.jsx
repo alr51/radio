@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api";
 import { HiSolidPlay, HiOutlineHeart, HiSolidHeart } from "solid-icons/hi";
-import { createSignal, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 
 const Station = (props) => {
 
@@ -26,16 +26,21 @@ const Station = (props) => {
   )
 
   return (
-    <div class="relative group flex rounded-md shadow-lg bg-neutral-800 shadow-black hover:border hover:border-black">
-      <img src={props.station.favicon} class="border-none" width={120} height={120} />
-      <div class="ml-2 truncate flex flex-col">
+    <div class="relative group flex rounded-md shadow-lg bg-neutral-800 border border-neutral-800 shadow-black hover:border-black">
+      <Show 
+    when={props.station.favicon && props.station.favicon.length > 0} 
+    fallback={<div class="h-[80px] w-[80px]"></div>}
+    >
+        <img src={props.station.favicon} class="rounded-md min-h-[80px] min-w-[80px]" width={80} />
+      </Show>
+      <div class="ml-2 flex-grow truncate flex flex-col">
         <span class="font-bold">{props.station.name}</span>
         <a target="_blank" href={props.station.homepage} class="truncate text-ellipsis text-slate-600 hover:text-slate-400 text-sm">{props.station.homepage}</a>
       </div>
       <button
-        class="absolute top-5 left-5 opacity-0 h-fit w-fit group-hover:opacity-80 hover:!opacity-100 hover:!text-green-500"
+        class="absolute top-3 left-3 opacity-0 h-fit w-fit group-hover:opacity-100 hover:!text-green-500"
         onClick={() => play(props.station)}>
-        <HiSolidPlay class="h-20 w-20" />
+        <HiSolidPlay class="h-14 w-14" />
       </button>
       <Show
         when={bookmarked()}

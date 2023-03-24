@@ -1,9 +1,12 @@
+import { Show } from "solid-js";
 
 const CurrentStation = (props) => {
   return (
-    <div class="flex space-x-2">
+    <div class="col-span-4 flex space-x-2">
       <div class="min-w-fit">
-        <img src={props.station.favicon} class="h-20" />
+        <Show when={props.station.favicon && props.station.favicon.length > 0} fallback={<div class="h-20 w-20"></div>}>
+          <img src={props.station.favicon} class="h-20 w-20" />
+        </Show>
       </div>
       <div class="flex flex-col truncate justify-center">
         <span class="font-bold text-ellipsis truncate">{props.station.name}</span>
