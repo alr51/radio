@@ -22,7 +22,7 @@ const Player = (props) => {
   }
 
   return (
-    <div class="fixed bottom-0 h-22 w-full bg-black border-t border-neutral-800 grid grid-cols-9">
+    <div class="fixed bottom-0 h-20 w-full bg-black border-t border-neutral-800 grid grid-cols-9">
       <Show when={props.currentStation}>
         <CurrentStation station={props.currentStation} />
         <div class="flex items-center justify-center">

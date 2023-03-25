@@ -1,5 +1,5 @@
 import { appWindow } from "@tauri-apps/api/window";
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { onCleanup, onMount } from "solid-js";
 
 function lerp (value1, value2, amount) {
   amount = amount < 0 ? 0 : amount;
@@ -7,21 +7,23 @@ function lerp (value1, value2, amount) {
   return value1 + (value2 - value1) * amount;
 }
 
-export default function Visualizer(props) {
+export default function Visualizer() {
 
   let spectrum = []
   let canvas
 
-  appWindow.listen(
-    'spectrum_event',
-    ({ payload }) => spectrum = payload
-  );
+  onMount(async () => {
 
-  onMount(() => {
+    const unlisten = await appWindow.listen(
+      'spectrum_event',
+      ({ payload }) => spectrum = payload
+    );
 
     const ctx = canvas.getContext("2d")
     let frame
+
     function loop() {
+      
       const canvasRect = canvas.getBoundingClientRect()
       const CANVAS_WIDTH = canvasRect.width
       const CANVAS_HEIGHT = canvasRect.height
@@ -46,6 +48,7 @@ export default function Visualizer(props) {
     loop()
 
     onCleanup(() => {
+      unlisten()
       cancelAnimationFrame(frame)
     })
   })
