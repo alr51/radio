@@ -38,7 +38,7 @@ export default function Visualizer() {
 	const r = 255 + spectrum[i] 
 	const g = lerp(0,255, i/128)
 	const b = lerp(255,0, i/128)
-	ctx.fillStyle = `rgba(${r},${g},${b},0.8)`
+	ctx.fillStyle = `rgba(${r},${g},${b},1)`
         ctx.fillRect(i * BAR_WIDTH + CANVAS_WIDTH / 2, bar_y, BAR_WIDTH, CANVAS_HEIGHT - bar_y )
 	ctx.fillRect((CANVAS_WIDTH /2) - (i * BAR_WIDTH) - BAR_WIDTH  , bar_y, BAR_WIDTH, CANVAS_HEIGHT - bar_y )
       }
@@ -53,5 +53,5 @@ export default function Visualizer() {
     })
   })
 
-  return <canvas ref={canvas} class="fixed bottom-20 w-full h-32" />
+  return <canvas ref={canvas} class="-z-10 fixed bottom-20 w-full h-32" />
 }

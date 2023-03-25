@@ -15,7 +15,7 @@ impl Player {
         gstreamer::init().expect("Failed to initialize gstreamer");
 
         let pipeline = gstreamer::parse_launch(
-            "uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! tee name=t ! queue ! volume name=volume ! autoaudiosink t. ! queue ! spectrum bands=128 threshold=-60 interval=100000000 ! fakesink",
+            "uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! tee name=t ! queue ! volume name=volume ! autoaudiosink t. ! queue ! spectrum bands=128 threshold=-60 interval=80000000 ! fakesink",
         )
         .expect("failed to create gstreamer pipeline");
 

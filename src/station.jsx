@@ -26,7 +26,7 @@ const Station = (props) => {
   )
 
   return (
-    <div class="relative group flex rounded-md shadow-lg bg-neutral-800 border border-neutral-800 shadow-black hover:border-black">
+    <div class="relative group flex rounded-md shadow-lg bg-neutral-800 bg-opacity-75 border border-neutral-800 shadow-black hover:border-black">
       <Show 
     when={props.station.favicon && props.station.favicon.length > 0} 
     fallback={<div class="h-[80px] w-[80px]"></div>}
