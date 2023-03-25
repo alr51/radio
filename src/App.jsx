@@ -52,7 +52,7 @@ function App() {
       <div class="mb-20 flex flex-col">
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
         <Loader pending={pending()} />
-        <div class="grow grid grid-cols-2 m-4 gap-6">
+        <div class="grow grid grid-cols-2 m-2 gap-4">
           <For each={stations()}>
             {(station) => <Station station={station} setCurrent={setCurrent} />}
           </For>

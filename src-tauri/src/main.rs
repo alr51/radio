@@ -52,7 +52,9 @@ fn main() -> Result<()> {
             stream_events,
             bookmark_station,
             remove_bookmark_station,
-            bookmark_stations_list
+            bookmark_stations_list,
+            set_volume,
+            mute
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

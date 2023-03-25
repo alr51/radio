@@ -2,7 +2,7 @@ use crate::{
     tuner::{Station, StationsSearchQuery},
     RadioState,
 };
-use gstreamer::{prelude::Continue, traits::ElementExt, Message, MessageView};
+use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
 use tauri::{State, Window};
 
 #[tauri::command]
@@ -57,7 +57,7 @@ pub fn play(state: State<RadioState>) {
 
 #[tauri::command]
 pub fn stream_events(state: State<RadioState>, window: Window) {
-    state
+    let _ = state
         .player
         .lock()
         .unwrap()
@@ -86,8 +86,7 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
                 _ => (),
             }
             Continue(true)
-        })
-        .expect("message watch problem");
+        });
 }
 
 #[tauri::command]
@@ -106,4 +105,14 @@ pub fn bookmark_stations_list(state: State<RadioState>) -> Vec<Station> {
         return stations;
     }
     vec![]
+}
+
+#[tauri::command]
+pub fn set_volume(state: State<RadioState>, volume: f64) {
+    let _ = state.player.lock().unwrap().set_volume(volume);
+}
+
+#[tauri::command]
+pub fn mute(state: State<RadioState>, mute: bool) {
+    let _ = state.player.lock().unwrap().mute(mute);
 }

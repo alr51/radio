@@ -15,7 +15,7 @@ impl Player {
         gstreamer::init().expect("Failed to initialize gstreamer");
 
         let pipeline = gstreamer::parse_launch(
-            "uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! spectrum bands=128 threshold=-60 interval=100000000 ! autoaudiosink",
+            "uridecodebin name=uridecodebin ! audioconvert name=audioconvert ! volume name=volume ! spectrum bands=128 threshold=-60 interval=100000000 ! autoaudiosink",
         )
         .expect("failed to create gstreamer pipeline");
 
@@ -67,6 +67,19 @@ impl Player {
 
     pub fn pause(&mut self) -> Result<(), Error> {
         self.pipeline.set_state(gstreamer::State::Paused)?;
+        Ok(())
+    }
+    
+    pub fn set_volume(&mut self, vol: f64) -> Result<(),Error> {
+        if let Some(volume) = self.pipeline.by_name("volume") {
+            volume.set_property("volume", vol);
+        }
+        Ok(())
+    }
+    pub fn mute(&mut self, mute: bool) -> Result<(),Error> {
+        if let Some(volume) = self.pipeline.by_name("volume") {
+            volume.set_property("mute", mute);
+        }
         Ok(())
     }
 }
