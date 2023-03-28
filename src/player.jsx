@@ -36,7 +36,7 @@ const Player = (props) => {
         <div class="flex items-end ">
           <div class="inline-flex items-center space-x-1 mb-1">
           <HiOutlineVolumeOff />
-          <input type="range" min="0" max="100" value="100" onChange={(e) => invoke("set_volume", { volume: e.target.value / 100 })} class="appearance-none bg-neutral-900 rounded-lg h-1 w-20" />
+          <input type="range" min="0" max="100" value="100" onChange={(e) => invoke("set_volume", { volume: e.target.value / 100 })} class="appearance-none bg-neutral-900 rounded-lg h-1 w-16"/>
           <HiOutlineVolumeUp />
     </div>
         </div>

@@ -66,7 +66,7 @@ impl Player {
     }
 
     pub fn pause(&mut self) -> Result<(), Error> {
-        self.pipeline.set_state(gstreamer::State::Paused)?;
+        self.pipeline.set_state(gstreamer::State::Null)?;
         Ok(())
     }
     
