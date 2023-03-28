@@ -4,8 +4,11 @@ use serde::Serialize;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::Resolver;
 
+static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"), "/", env!("CARGO_PKG_REPOSITORY"));
+
 pub struct Tuner {
     api_endpoint: String,
+    client: reqwest::blocking::Client,
 }
 
 impl Tuner {
@@ -29,19 +32,26 @@ impl Tuner {
         let endpoint = api_endpoints.get(0).expect("No api endpoints found");
         println!("Selected endpoint : {}", &endpoint);
 
+        let client = reqwest::blocking::Client::builder()
+            .user_agent(APP_USER_AGENT)
+            .build()?;
+
         Ok(Tuner {
             api_endpoint: endpoint.to_string(),
+            client,
         })
     }
 
-    pub fn search(&mut self, query:StationsSearchQuery) -> Result<Vec<Station>> {
-        let stations = reqwest::blocking::get(format!(
-            "{}/json/stations/byname/{}?limit={}&order=votes&reverse=true",
-            self.api_endpoint,
-            query.name,
-            query.limit
-        ))?
-        .json::<Vec<Station>>()?;
+    pub fn search(&mut self, query: StationsSearchQuery) -> Result<Vec<Station>> {
+        // println!("{}",APP_USER_AGENT);
+        let stations = self
+            .client
+            .get(format!(
+                "{}/json/stations/byname/{}?limit={}&order=votes&reverse=true",
+                self.api_endpoint, query.name, query.limit
+            ))
+            .send()?
+            .json::<Vec<Station>>()?;
 
         Ok(stations)
     }
@@ -61,7 +71,7 @@ pub struct Station {
     pub bitrate: u16,
     pub votes: u64,
     #[serde(default)]
-    pub bookmarked: bool
+    pub bookmarked: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
