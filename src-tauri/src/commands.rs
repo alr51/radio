@@ -4,13 +4,14 @@ use crate::{
 };
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
 use tauri::{State, Window};
+use log::{info,debug,trace};
 
 #[tauri::command]
 pub fn search_stations(
     state: State<RadioState>,
     stations_query: StationsSearchQuery,
 ) -> Vec<Station> {
-    // println!("search_stations");
+    info!("Search stations");
     if let Ok(mut stations) = state
         .tuner
         .lock()
@@ -38,6 +39,7 @@ pub fn search_stations(
 
 #[tauri::command]
 pub fn play_station(state: State<RadioState>, station: Station) {
+    info!("Play station");
     let _ = state
         .player
         .lock()
@@ -47,16 +49,19 @@ pub fn play_station(state: State<RadioState>, station: Station) {
 
 #[tauri::command]
 pub fn pause(state: State<RadioState>) {
+    info!("Pause");
     let _ = state.player.lock().expect("no player found").pause();
 }
 
 #[tauri::command]
 pub fn play(state: State<RadioState>) {
+    info!("Play");
     let _ = state.player.lock().expect("no player found").play();
 }
 
 #[tauri::command]
 pub fn stream_events(state: State<RadioState>, window: Window) {
+    info!("Stream events");
     let _ = state
         .player
         .lock()
@@ -65,10 +70,11 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
         .bus()
         .unwrap()
         .add_watch(move |_, message| {
-            // println!("message : {:?}", message);
+            trace!("message : {:?}", message);
             match message.view() {
                 MessageView::Tag(tag) => {
                     if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
+                        debug!("EVENT Title: {}",t.get());
                         window.emit("title_event", t.get()).unwrap();
                     }
                 }
@@ -79,6 +85,7 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
                             let m:Vec<_> = magnitude.iter().map(|db| {
                                 db.get::<f32>().unwrap_or(0.0)
                             }).collect();
+                            trace!("EVENT Spectrum: {:?}", &m);
                             window.emit("spectrum_event", m).unwrap();
                         }
                     }
@@ -91,16 +98,19 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
 
 #[tauri::command]
 pub fn bookmark_station(state: State<RadioState>, station: Station) {
+    info!("Bookmark station");
     let _ = state.db.lock().unwrap().bookmark_station(station);
 }
 
 #[tauri::command]
 pub fn remove_bookmark_station(state: State<RadioState>, station: Station) {
+    info!("Remove bookmark");
     let _ = state.db.lock().unwrap().remove_bookmark_station(station);
 }
 
 #[tauri::command]
 pub fn bookmark_stations_list(state: State<RadioState>) -> Vec<Station> {
+    info!("Bookmarked stations list");
     if let Ok(stations) = state.db.lock().unwrap().bookmark_stations_list() {
         return stations;
     }
@@ -109,6 +119,7 @@ pub fn bookmark_stations_list(state: State<RadioState>) -> Vec<Station> {
 
 #[tauri::command]
 pub fn set_volume(state: State<RadioState>, volume: f64) {
+    info!("Set volume to {}", volume);
     let _ = state.player.lock().unwrap().set_volume(volume);
 }
 

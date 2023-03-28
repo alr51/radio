@@ -23,6 +23,9 @@ pub struct RadioState {
 }
 
 fn main() -> Result<()> {
+
+    env_logger::init();
+
     let state = RadioState {
         tuner: Mutex::new(Tuner::new()?),
         player: Mutex::new(Player::new()),

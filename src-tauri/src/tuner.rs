@@ -1,4 +1,5 @@
 use anyhow::{Ok, Result};
+use log::{info,debug};
 use serde::Deserialize;
 use serde::Serialize;
 use trust_dns_resolver::config::*;
@@ -13,6 +14,7 @@ pub struct Tuner {
 
 impl Tuner {
     pub fn new() -> Result<Self> {
+        info!("Init Tuner");
         // https://www.radio-browser.info/
         // radio-browser API endpoints lookup
         let mut api_endpoints: Vec<String> = vec![];
@@ -27,14 +29,16 @@ impl Tuner {
             host.next_back();
             api_endpoints.push(format!("https://{}", host.as_str()));
         }
-        println!("Endpoints: {:?}", api_endpoints);
+        debug!("Endpoints: {:?}", api_endpoints);
 
         let endpoint = api_endpoints.get(0).expect("No api endpoints found");
-        println!("Selected endpoint : {}", &endpoint);
+        debug!("Selected endpoint : {}", &endpoint);
 
         let client = reqwest::blocking::Client::builder()
             .user_agent(APP_USER_AGENT)
             .build()?;
+
+        debug!("USER-AGENT: {}",APP_USER_AGENT);
 
         Ok(Tuner {
             api_endpoint: endpoint.to_string(),

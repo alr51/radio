@@ -1,7 +1,7 @@
-use anyhow::Result;
-use rusqlite::Connection;
-
 use crate::tuner::Station;
+use anyhow::Result;
+use log::info;
+use rusqlite::Connection;
 
 pub struct Db {
     con: Connection,
@@ -14,6 +14,7 @@ impl Db {
     }
 
     fn init() -> Result<Connection> {
+        info!("Init Database");
         let con = Connection::open("./radio.db")?;
 
         con.execute(

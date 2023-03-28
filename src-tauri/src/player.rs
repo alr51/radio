@@ -5,6 +5,7 @@ use gstreamer::{
 };
 
 use crate::tuner::Station;
+use log::info;
 
 pub struct Player {
     pub pipeline: gstreamer::Pipeline,
@@ -12,6 +13,8 @@ pub struct Player {
 
 impl Player {
     pub fn new() -> Self {
+        info!("Init Gstreamer");
+
         gstreamer::init().expect("Failed to initialize gstreamer");
 
         let pipeline = gstreamer::parse_launch(
@@ -46,6 +49,8 @@ impl Player {
             }
         });
 
+        info!("Gstreamer pipeline initialized");
+
         Player { pipeline }
     }
 
@@ -69,14 +74,14 @@ impl Player {
         self.pipeline.set_state(gstreamer::State::Null)?;
         Ok(())
     }
-    
-    pub fn set_volume(&mut self, vol: f64) -> Result<(),Error> {
+
+    pub fn set_volume(&mut self, vol: f64) -> Result<(), Error> {
         if let Some(volume) = self.pipeline.by_name("volume") {
             volume.set_property("volume", vol);
         }
         Ok(())
     }
-    pub fn mute(&mut self, mute: bool) -> Result<(),Error> {
+    pub fn mute(&mut self, mute: bool) -> Result<(), Error> {
         if let Some(volume) = self.pipeline.by_name("volume") {
             volume.set_property("mute", mute);
         }
