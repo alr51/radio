@@ -12,10 +12,10 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true,
+      "all": false,
       "shell": {
         "all": false,
-        "open": true
+        "open": false
       }
     },
     "bundle": {
@@ -64,7 +64,7 @@
         "resizable": true,
         "title": "radio",
         "width": 800,
-        "visible": false
+        "visible": true
       },
       {
         "fullscreen": false,
@@ -72,7 +72,8 @@
         "resizable": true,
         "width": 800,
         "url": "splashscreen.html",
-        "label": "splashscreen"
+        "label": "splashscreen",
+        "visible": false
       }
     ]
   }

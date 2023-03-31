@@ -34,15 +34,15 @@ fn main() -> Result<()> {
 
     tauri::Builder::default()
         .setup(|app| {
-            let splashscreen_window = app.get_window("splashscreen").unwrap();
-            let main_window = app.get_window("main").unwrap();
-            // we perform the initialization code on a new task so the app doesn't freeze
-            tauri::async_runtime::spawn(async move {
-                std::thread::sleep(std::time::Duration::from_secs(5));
-
-                splashscreen_window.close().unwrap();
-                main_window.show().unwrap();
-            });
+            // let splashscreen_window = app.get_window("splashscreen").unwrap();
+            // let main_window = app.get_window("main").unwrap();
+            // // we perform the initialization code on a new task so the app doesn't freeze
+            // tauri::async_runtime::spawn(async move {
+            //     std::thread::sleep(std::time::Duration::from_secs(5));
+            //
+            //     splashscreen_window.close().unwrap();
+            //     main_window.show().unwrap();
+            // });
 
             Ok(())
         })
