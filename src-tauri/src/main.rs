@@ -11,9 +11,9 @@ mod tuner;
 use anyhow::Result;
 use commands::*;
 use db::Db;
+use log::debug;
 use player::Player;
 use std::sync::Mutex;
-use tauri::Manager;
 use tuner::Tuner;
 
 pub struct RadioState {
@@ -23,7 +23,6 @@ pub struct RadioState {
 }
 
 fn main() -> Result<()> {
-
     env_logger::init();
 
     let state = RadioState {
@@ -59,6 +58,13 @@ fn main() -> Result<()> {
             set_volume,
             mute
         ])
+        .on_window_event(move |event| match event.event() {
+            tauri::WindowEvent::CloseRequested { .. } => {
+                debug!("close requested");
+                std::process::exit(0);
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
     Ok(())

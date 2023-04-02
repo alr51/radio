@@ -81,6 +81,7 @@ impl Player {
         }
         Ok(())
     }
+
     pub fn mute(&mut self, mute: bool) -> Result<(), Error> {
         if let Some(volume) = self.pipeline.by_name("volume") {
             volume.set_property("mute", mute);
