@@ -31,7 +31,7 @@ const Station = (props) => {
     when={props.station.favicon && props.station.favicon.length > 0} 
     fallback={<div class="h-[80px] w-[80px]"></div>}
     >
-        <img src={props.station.favicon} class="rounded-md min-h-[80px] min-w-[80px]" width={80} />
+        <img src={props.station.favicon} class="rounded-tl-md rounded-bl-md min-h-[80px] min-w-[80px]" width={80} />
       </Show>
       <div class="ml-2 flex-grow truncate flex flex-col">
         <span class="font-bold">{props.station.name}</span>

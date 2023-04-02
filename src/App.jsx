@@ -7,6 +7,9 @@ import Search from "./Search";
 import Header from "./Header";
 import Loader from "./Loader";
 import Visualizer from "./Visualizer";
+import { Route, Routes } from "@solidjs/router";
+import StationsList from "./StationsList";
+import Favorites from "./Favorites";
 
 async function invokeStreamEvents() {
   await invoke("stream_events", { window: appWindow });
@@ -17,8 +20,9 @@ invokeStreamEvents();
 
 function App() {
   const [stations, setStations] = createSignal([]);
-  const [currentStation, setCurrentStation] = createSignal(undefined);
+  const [currentStation, setCurrentStation] = createSignal(null);
   const [title, setTitle] = createSignal("");
+  const [playing, setPlaying] = createSignal(false);
   const [pending, setPending] = createSignal(false);
 
   appWindow.listen(
@@ -42,7 +46,18 @@ function App() {
 
   const setCurrent = (station) => {
     setTitle("");
+    setPlaying(true)
     setCurrentStation(station)
+  }
+
+  const play = () => {
+    setPlaying(true)
+    invoke('play')
+  }
+
+  const pause = () => {
+    setPlaying(false)
+    invoke('pause')
   }
 
   onMount(() => bookmarkList())
@@ -51,15 +66,14 @@ function App() {
     <>
       <div class="mb-20 flex flex-col">
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
-        <Loader pending={pending()} />
-        <div class="grow grid grid-cols-2 m-2 gap-4">
-          <For each={stations()}>
-            {(station) => <Station station={station} setCurrent={setCurrent} />}
-          </For>
-        </div>
+        {pending() ? <Loader pending={pending()} /> : ""}
+        <Routes>
+          <Route path="/list" element={<StationsList stations={stations} setCurrent={setCurrent} />} />
+          <Route path="/" element={<Favorites stations={stations} setCurrent={setCurrent} />} />
+        </Routes>
       </div>
       <Visualizer />
-      <Player currentStation={currentStation()} currentTitle={title()} />
+      <Player currentStation={currentStation()} currentTitle={title()} playing={playing} pause={pause} play={play} />
     </>
   )
 }

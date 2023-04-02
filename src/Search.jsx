@@ -1,16 +1,21 @@
+import { useNavigate } from "@solidjs/router"
 import { HiOutlineSearch, HiOutlineHeart } from "solid-icons/hi"
 import { createSignal } from "solid-js"
 
 const Search = (props) => {
   const [query, setQuery] = createSignal({ name: 'Jazz', limit: 10 })
 
+  const navigate = useNavigate();
+
   function submitSearch(e) {
     e.preventDefault()
     props.search(query())
+    navigate("/list")
   }
 
   function bookmarkList() {
     props.bookmarkList()
+    navigate("/")
   }
 
   return (
