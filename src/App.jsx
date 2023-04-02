@@ -65,8 +65,8 @@ function App() {
   return (
     <>
       <div class="mb-20 flex flex-col">
+        <Loader pending={pending()} />
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
-        {pending() ? <Loader pending={pending()} /> : ""}
         <Routes>
           <Route path="/list" element={<StationsList stations={stations} setCurrent={setCurrent} />} />
           <Route path="/" element={<Favorites stations={stations} setCurrent={setCurrent} />} />

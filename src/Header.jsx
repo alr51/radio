@@ -1,6 +1,6 @@
 const Header = (props) => {
   return (
-    <div class="grid grid-cols-6 h-20 bg-black border-b border-neutral-800 items-center">
+    <div class="grid grid-cols-6 h-20 bg-black items-center">
       <div class="h-full pl-4 pt-3">
         <svg class="fill-slate-300" id="logo" fill="#ffffff" height="40px" width="40px" version="1.1"
           xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewbox="0 0 294 294"

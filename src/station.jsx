@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api";
 import { HiSolidPlay, HiOutlineHeart, HiSolidHeart } from "solid-icons/hi";
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
 
 const Station = (props) => {
 
