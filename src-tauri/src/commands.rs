@@ -1,10 +1,11 @@
 use crate::{
     tuner::{Station, StationsSearchQuery},
-    RadioState,
+    RadioState, musicbrainz::MBArtist, fanarttv::FATVArtistImages,
 };
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
+use serde::Serialize;
 use tauri::{State, Window};
-use log::{info,debug,trace};
+use log::{info,debug,trace,error};
 
 #[tauri::command]
 pub fn search_stations(
@@ -126,4 +127,29 @@ pub fn set_volume(state: State<RadioState>, volume: f64) {
 #[tauri::command]
 pub fn mute(state: State<RadioState>, mute: bool) {
     let _ = state.player.lock().unwrap().mute(mute);
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ArtistInfo {
+    artist: Option<MBArtist>,
+    images: Option<FATVArtistImages>
+}
+
+#[tauri::command]
+pub fn artist_info(state: State<RadioState>, artist: String) -> Option<ArtistInfo> {
+    info!("Get artist info for {}", artist);
+
+    match state.mb.lock().unwrap().artist_info(artist) {
+        Ok(info) => {
+            if let Some(ref artist_infos) = info {
+                match state.fatv.lock().unwrap().get_artist_images(artist_infos.id.clone()) {
+                    Ok(images) => return Some(ArtistInfo{artist: info, images:Some(images)}),
+                    Err(err) => error!("{}",err),
+                }
+            }
+        },
+        Err(err) => error!("Error while artist info lookup {}",err),
+    }
+
+    None
 }

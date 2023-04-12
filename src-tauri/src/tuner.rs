@@ -5,7 +5,7 @@ use serde::Serialize;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::Resolver;
 
-static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"), "/", env!("CARGO_PKG_REPOSITORY"));
+use crate::APP_USER_AGENT;
 
 pub struct Tuner {
     api_endpoint: String,

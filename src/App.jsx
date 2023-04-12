@@ -10,6 +10,7 @@ import Visualizer from "./Visualizer";
 import { Route, Routes } from "@solidjs/router";
 import StationsList from "./StationsList";
 import Favorites from "./Favorites";
+import Infos from "./Infos";
 
 async function invokeStreamEvents() {
   await invoke("stream_events", { window: appWindow });
@@ -68,8 +69,9 @@ function App() {
         <Loader pending={pending()} />
         <Header><Search search={searchStations} bookmarkList={bookmarkList} /></Header>
         <Routes>
-          <Route path="/list" element={<StationsList stations={stations} setCurrent={setCurrent} />} />
           <Route path="/" element={<Favorites stations={stations} setCurrent={setCurrent} />} />
+          <Route path="/list" element={<StationsList stations={stations} setCurrent={setCurrent} />} />
+          <Route path="/infos" element={<Infos currentTitle={title()}/>} />
         </Routes>
       </div>
       <Visualizer />

@@ -8,4 +8,6 @@ Stack :
 * [gstreamer](https://gstreamer.freedesktop.org/)
 * [sqlite](https://sqlite.org/index.html)
 
-Stations list: [RadioBrowser](https://www.radio-browser.info) 
+Stations list: [RadioBrowser](https://www.radio-browser.info)
+Music infos: [MusicBrainz](https://musicbrainz.org/)
+Art: [fanart.tv](https://fanart.tv/)

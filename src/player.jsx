@@ -2,6 +2,7 @@ import CurrentStation from "./CurrentStation"
 import { invoke } from "@tauri-apps/api";
 import { Show } from "solid-js";
 import { HiSolidPlay, HiSolidPause, HiOutlineVolumeOff, HiOutlineVolumeUp } from "solid-icons/hi"
+import { A } from "@solidjs/router";
 
 const Player = (props) => {
 
@@ -23,7 +24,7 @@ const Player = (props) => {
           </button>
         </div>
         <div class="col-span-3 flex items-center">
-          <span fex>{props.currentTitle}</span>
+          <A href="/infos">{props.currentTitle}</A>
         </div>
         <div class="flex items-end ">
           <div class="inline-flex items-center space-x-1 mb-1">

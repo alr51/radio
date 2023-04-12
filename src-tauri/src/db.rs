@@ -30,6 +30,14 @@ impl Db {
             )",
             (),
         )?;
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS artist_cache (
+                artist_id TEXT PRIMARY KEY,
+                name TEXT,
+                data TEXT
+            )",
+            (),
+        )?;
 
         Ok(con)
     }

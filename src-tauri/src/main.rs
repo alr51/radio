@@ -7,28 +7,46 @@ mod commands;
 mod db;
 mod player;
 mod tuner;
+mod musicbrainz;
+mod fanarttv;
 
 use anyhow::Result;
 use commands::*;
 use db::Db;
+use fanarttv::FanArtTv;
+use musicbrainz::MusicBrainz;
 use player::Player;
 use std::sync::Mutex;
 use tuner::Tuner;
 use log::debug;
+use dotenv::dotenv;
+
+
+pub const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"), " (", env!("CARGO_PKG_REPOSITORY"), ")");
+
+
+pub const MUSICBRAINZ_API_ENDPOINT: &str = "https://musicbrainz.org/ws/2/";
 
 pub struct RadioState {
     tuner: Mutex<Tuner>,
     player: Mutex<Player>,
     db: Mutex<Db>,
+    mb: Mutex<MusicBrainz>,
+    fatv: Mutex<FanArtTv>,
 }
 
 fn main() -> Result<()> {
+    
+    dotenv().ok();
+
     env_logger::init();
 
     let state = RadioState {
         tuner: Mutex::new(Tuner::new()?),
         player: Mutex::new(Player::new()),
         db: Mutex::new(Db::new()),
+        mb: Mutex::new(MusicBrainz::new()),
+        fatv: Mutex::new(FanArtTv::new()),
     };
 
     tauri::Builder::default()
@@ -43,7 +61,8 @@ fn main() -> Result<()> {
             remove_bookmark_station,
             bookmark_stations_list,
             set_volume,
-            mute
+            mute,
+            artist_info
         ])
         .on_window_event(move |event| match event.event() {
             tauri::WindowEvent::CloseRequested { .. } => {
