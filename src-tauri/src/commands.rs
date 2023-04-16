@@ -1,11 +1,13 @@
 use crate::{
+    fanarttv::FATVArtistImages,
+    musicbrainz::MBArtist,
     tuner::{Station, StationsSearchQuery},
-    RadioState, musicbrainz::MBArtist, fanarttv::FATVArtistImages,
+    RadioState,
 };
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
+use log::{debug, error, info, trace};
 use serde::Serialize;
 use tauri::{State, Window};
-use log::{info,debug,trace,error};
 
 #[tauri::command]
 pub fn search_stations(
@@ -75,7 +77,7 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
             match message.view() {
                 MessageView::Tag(tag) => {
                     if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
-                        debug!("EVENT Title: {}",t.get());
+                        debug!("EVENT Title: {}", t.get());
                         window.emit("title_event", t.get()).unwrap();
                     }
                 }
@@ -83,9 +85,10 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
                     if let Some(structure) = element.structure() {
                         if structure.name() == "spectrum" {
                             let magnitude = structure.get::<gstreamer::List>("magnitude").unwrap();
-                            let m:Vec<_> = magnitude.iter().map(|db| {
-                                db.get::<f32>().unwrap_or(0.0)
-                            }).collect();
+                            let m: Vec<_> = magnitude
+                                .iter()
+                                .map(|db| db.get::<f32>().unwrap_or(0.0))
+                                .collect();
                             trace!("EVENT Spectrum: {:?}", &m);
                             window.emit("spectrum_event", m).unwrap();
                         }
@@ -132,23 +135,62 @@ pub fn mute(state: State<RadioState>, mute: bool) {
 #[derive(Debug, Clone, Serialize)]
 pub struct ArtistInfo {
     artist: Option<MBArtist>,
-    images: Option<FATVArtistImages>
+    images: Option<FATVArtistImages>,
+    bio: Option<String>,
 }
 
 #[tauri::command]
 pub fn artist_info(state: State<RadioState>, artist: String) -> Option<ArtistInfo> {
     info!("Get artist info for {}", artist);
 
+    // Search artist information from musicbrainz
     match state.mb.lock().unwrap().artist_info(artist) {
         Ok(info) => {
             if let Some(ref artist_infos) = info {
-                match state.fatv.lock().unwrap().get_artist_images(artist_infos.id.clone()) {
-                    Ok(images) => return Some(ArtistInfo{artist: info, images:Some(images)}),
-                    Err(err) => error!("{}",err),
+                
+                // Search for wikidata url
+                // And try to retrieve artist bio information
+                let mut artist_bio: Option<String> = None;
+
+                if let Some(ref relations) = artist_infos.relations {
+                    let wikidata = relations.iter().find_map(|rel| {
+                        if rel.url_type.eq(&Some("wikidata".to_string())) {
+                            return Some(rel);
+                        }
+                        None
+                    });
+
+                    if let Some(wiki) = wikidata {
+                        let url = wiki.clone().url;
+                        if let Some(wiki_url) = url {
+                            artist_bio = state
+                                .wiki
+                                .lock()
+                                .unwrap()
+                                .get_artist_extract(wiki_url.resource.unwrap(), None);
+                        }
+                    }
+                }
+
+                // Search for images on fanart.tv
+                match state
+                    .fatv
+                    .lock()
+                    .unwrap()
+                    .get_artist_images(artist_infos.id.clone())
+                {
+                    Ok(images) => {
+                        return Some(ArtistInfo {
+                            artist: info,
+                            images: Some(images),
+                            bio: artist_bio
+                        })
+                    }
+                    Err(err) => error!("{}", err),
                 }
             }
-        },
-        Err(err) => error!("Error while artist info lookup {}",err),
+        }
+        Err(err) => error!("Error while artist info lookup {}", err),
     }
 
     None

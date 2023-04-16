@@ -1,6 +1,6 @@
 use crate::{APP_USER_AGENT, MUSICBRAINZ_API_ENDPOINT};
 use anyhow::Result;
-use log::debug;
+use log::{debug,info};
 use reqwest::{
     blocking::{Client, ClientBuilder},
     header::{HeaderMap, HeaderValue},
@@ -23,6 +23,7 @@ impl MusicBrainz {
             .build()
             .expect("Can't build musicbrainz client");
 
+        info!("Musicbrainz client created");
         Self { client }
     }
 
@@ -77,19 +78,19 @@ pub struct MBSearchArtist {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MBArtist {
     pub id: String,
-    name: Option<String>,
-    country: Option<String>,
-    relations: Option<Vec<MBUrlRel>>,
+    pub name: Option<String>,
+    pub country: Option<String>,
+    pub relations: Option<Vec<MBUrlRel>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MBUrlRel {
     #[serde(alias = "type")]
-    url_type: Option<String>,
-    url:Option<MBUrl>, 
+    pub url_type: Option<String>,
+    pub url:Option<MBUrl>, 
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MBUrl {
-    resource:Option<String>
+    pub resource:Option<String>
 }

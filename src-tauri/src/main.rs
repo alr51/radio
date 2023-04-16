@@ -9,6 +9,7 @@ mod player;
 mod tuner;
 mod musicbrainz;
 mod fanarttv;
+mod wikipedia;
 
 use anyhow::Result;
 use commands::*;
@@ -20,6 +21,7 @@ use std::sync::Mutex;
 use tuner::Tuner;
 use log::debug;
 use dotenv::dotenv;
+use wikipedia::Wikipedia;
 
 
 pub const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"), " (", env!("CARGO_PKG_REPOSITORY"), ")");
@@ -33,6 +35,7 @@ pub struct RadioState {
     db: Mutex<Db>,
     mb: Mutex<MusicBrainz>,
     fatv: Mutex<FanArtTv>,
+    wiki: Mutex<Wikipedia>,
 }
 
 fn main() -> Result<()> {
@@ -47,6 +50,7 @@ fn main() -> Result<()> {
         db: Mutex::new(Db::new()),
         mb: Mutex::new(MusicBrainz::new()),
         fatv: Mutex::new(FanArtTv::new()),
+        wiki: Mutex::new(Wikipedia::new())
     };
 
     tauri::Builder::default()

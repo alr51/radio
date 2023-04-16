@@ -6,7 +6,7 @@ use reqwest::{
 };
 use serde::{Deserialize, Serialize};
 use crate::APP_USER_AGENT;
-use log::debug;
+use log::{debug,info};
 
 const FANART_TV_API_URL: &str = "http://webservice.fanart.tv/v3/music/";
 
@@ -26,6 +26,8 @@ impl FanArtTv {
             .default_headers(headers)
             .build()
             .expect("Can't build FanArtTv client");
+
+        info!("Fanart.tv client created");
 
         Self { client }
     }
