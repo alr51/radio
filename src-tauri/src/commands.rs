@@ -65,6 +65,7 @@ pub fn play(state: State<RadioState>) {
 #[tauri::command]
 pub fn stream_events(state: State<RadioState>, window: Window) {
     info!("Stream events");
+    let mut current_title = "".to_string();
     let _ = state
         .player
         .lock()
@@ -77,8 +78,13 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
             match message.view() {
                 MessageView::Tag(tag) => {
                     if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
-                        debug!("EVENT Title: {}", t.get());
-                        window.emit("title_event", t.get()).unwrap();
+                        let title: String = t.get().to_string();
+                        debug!("EVENT Title: {}", &title);
+                        if title.ne(&current_title) {
+                            debug!("title change Emit event");
+                            window.emit("title_event", &title).unwrap();
+                            current_title = title;                            
+                        }
                     }
                 }
                 MessageView::Element(element) => {
