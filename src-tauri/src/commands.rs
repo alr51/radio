@@ -6,7 +6,7 @@ use crate::{
 };
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
 use log::{debug, error, info, trace};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{State, Window};
 
 #[tauri::command]
@@ -132,22 +132,27 @@ pub fn mute(state: State<RadioState>, mute: bool) {
     let _ = state.player.lock().unwrap().mute(mute);
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ArtistInfo {
-    artist: Option<MBArtist>,
-    images: Option<FATVArtistImages>,
-    bio: Option<String>,
+    pub artist: Option<MBArtist>,
+    pub images: Option<FATVArtistImages>,
+    pub bio: Option<String>,
 }
 
 #[tauri::command]
 pub fn artist_info(state: State<RadioState>, artist: String) -> Option<ArtistInfo> {
     info!("Get artist info for {}", artist);
 
+    // Try to retreive from cache
+    if let Ok(artist_info) = state.db.lock().unwrap().get_artist_cache(artist.clone()) {
+        debug!("Artist infos found in cache");
+        return Some(artist_info);
+    }
+
     // Search artist information from musicbrainz
-    match state.mb.lock().unwrap().artist_info(artist) {
+    match state.mb.lock().unwrap().artist_info(artist.clone()) {
         Ok(info) => {
             if let Some(ref artist_infos) = info {
-                
                 // Search for wikidata url
                 // And try to retrieve artist bio information
                 let mut artist_bio: Option<String> = None;
@@ -180,11 +185,16 @@ pub fn artist_info(state: State<RadioState>, artist: String) -> Option<ArtistInf
                     .get_artist_images(artist_infos.id.clone())
                 {
                     Ok(images) => {
-                        return Some(ArtistInfo {
+                        let artist_info = ArtistInfo {
                             artist: info,
                             images: Some(images),
-                            bio: artist_bio
-                        })
+                            bio: artist_bio,
+                        };
+
+                        // Add to cache
+                        let _ = state.db.lock().unwrap().add_artist_cache(artist, artist_info.clone());
+
+                        return Some(artist_info);
                     }
                     Err(err) => error!("{}", err),
                 }

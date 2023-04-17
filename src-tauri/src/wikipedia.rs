@@ -1,5 +1,5 @@
 use crate::APP_USER_AGENT;
-use log::{debug, info,error};
+use log::{debug, info};
 use reqwest::{
     blocking::{Client, ClientBuilder},
     header::{HeaderMap, HeaderValue},

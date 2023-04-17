@@ -1,6 +1,7 @@
-use crate::tuner::Station;
-use anyhow::Result;
+use crate::{commands::ArtistInfo, tuner::Station};
+use anyhow::{bail, Result};
 use log::info;
+use rusqlite::params;
 use rusqlite::Connection;
 
 pub struct Db {
@@ -32,8 +33,7 @@ impl Db {
         )?;
         con.execute(
             "CREATE TABLE IF NOT EXISTS artist_cache (
-                artist_id TEXT PRIMARY KEY,
-                name TEXT,
+                name TEXT PRIMARY KEY,
                 data TEXT
             )",
             (),
@@ -126,5 +126,35 @@ impl Db {
         }
 
         Ok(stations)
+    }
+
+    pub fn add_artist_cache(&self, name: String, artist_info: ArtistInfo) -> Result<()> {
+        self.con.execute(
+            "INSERT INTO artist_cache 
+                (name, data)
+                VALUES (?1,?2)",
+            (name, serde_json::to_string(&artist_info)?),
+        )?;
+        Ok(())
+    }
+
+    pub fn get_artist_cache(&self, name: String) -> Result<ArtistInfo> {
+        let mut stmt = self
+            .con
+            .prepare("SELECT data FROM artist_cache WHERE name=?")?;
+
+        let rows = stmt.query_map(params![name.clone()], |row| row.get(0))?;
+
+        let mut datas: Vec<String> = Vec::new();
+        for data in rows {
+            datas.push(data?);
+        }
+
+        if datas.len() > 0 {
+            let artist_info: ArtistInfo = serde_json::from_str(&datas[0])?;
+            return Ok(artist_info);
+        }
+
+        bail!("No artist cache entry")
     }
 }
