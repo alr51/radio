@@ -1,8 +1,8 @@
 use crate::APP_USER_AGENT;
 use log::{debug, info};
 use reqwest::{
-    blocking::{Client, ClientBuilder},
     header::{HeaderMap, HeaderValue},
+    Client, ClientBuilder,
 };
 use serde_json::Value;
 
@@ -26,7 +26,7 @@ impl Wikipedia {
         Self { client }
     }
 
-    pub fn get_artist_extract(
+    pub async fn get_artist_extract(
         &self,
         wikidata_url: String,
         _language: Option<String>,
@@ -51,20 +51,25 @@ impl Wikipedia {
                 "https://wikidata.org/w/rest.php/wikibase/v0/entities/items/{}?_fields=sitelinks",
                 id
             );
-            
-            if let Ok(response) = self.client.get(wikidata_api_url).send() {
-                if let Ok(site_links_response) = response.json::<Value>() {
+
+            if let Ok(response) = self.client.get(wikidata_api_url).send().await {
+                if let Ok(site_links_response) = response.json::<Value>().await {
                     debug!("{:?}", &site_links_response);
 
                     if let Some(url) = site_links_response["sitelinks"]["enwiki"]["url"].as_str() {
                         debug!("wikipedia : {url}");
                         if let Some(wikipedia_title) = url.split("/").last() {
-                            let wikipedia_api_url = format!("https://en.wikipedia.org/api/rest_v1/page/summary/{}",wikipedia_title);
+                            let wikipedia_api_url = format!(
+                                "https://en.wikipedia.org/api/rest_v1/page/summary/{}",
+                                wikipedia_title
+                            );
 
-                            if let Ok(wiki_response) = self.client.get(wikipedia_api_url).send() {
-                                if let Ok(summary_response) = wiki_response.json::<Value>() {
+                            if let Ok(wiki_response) =
+                                self.client.get(wikipedia_api_url).send().await
+                            {
+                                if let Ok(summary_response) = wiki_response.json::<Value>().await {
                                     let bio = summary_response["extract"].as_str();
-                                    debug!("{:?}",&bio);
+                                    debug!("{:?}", &bio);
 
                                     return bio.map(String::from);
                                 }

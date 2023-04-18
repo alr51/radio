@@ -1,26 +1,22 @@
 use crate::{
-    fanarttv::FATVArtistImages,
+    fanarttv::{FATVArtistImages, FanArtTv},
     musicbrainz::MBArtist,
     tuner::{Station, StationsSearchQuery},
+    wikipedia::Wikipedia,
     RadioState,
 };
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
-use log::{debug, error, info, trace};
+use log::{debug, info, trace};
 use serde::{Deserialize, Serialize};
 use tauri::{State, Window};
 
 #[tauri::command]
-pub fn search_stations(
-    state: State<RadioState>,
+pub async fn search_stations(
+    state: State<'_, RadioState>,
     stations_query: StationsSearchQuery,
-) -> Vec<Station> {
+) -> Result<Vec<Station>, ()> {
     info!("Search stations");
-    if let Ok(mut stations) = state
-        .tuner
-        .lock()
-        .expect("no tuner found")
-        .search(stations_query)
-    {
+    if let Ok(mut stations) = state.tuner.lock().await.search(stations_query).await {
         let stations_uuid: Vec<_> = stations
             .iter()
             .map(|station| station.stationuuid.clone())
@@ -35,9 +31,9 @@ pub fn search_stations(
                 station.bookmarked = bookmarked_station.contains(&station.stationuuid);
             }
         }
-        return stations.to_vec();
+        return Ok(stations.to_vec());
     }
-    vec![]
+    Ok(vec![])
 }
 
 #[tauri::command]
@@ -83,7 +79,7 @@ pub fn stream_events(state: State<RadioState>, window: Window) {
                         if title.ne(&current_title) {
                             debug!("title change Emit event");
                             window.emit("title_event", &title).unwrap();
-                            current_title = title;                            
+                            current_title = title;
                         }
                     }
                 }
@@ -146,68 +142,78 @@ pub struct ArtistInfo {
 }
 
 #[tauri::command]
-pub fn artist_info(state: State<RadioState>, artist: String) -> Option<ArtistInfo> {
+pub async fn artist_info(
+    state: State<'_, RadioState>,
+    artist: String,
+) -> Result<Option<ArtistInfo>, ()> {
     info!("Get artist info for {}", artist);
 
     // Try to retreive from cache
     if let Ok(artist_info) = state.db.lock().unwrap().get_artist_cache(artist.clone()) {
         debug!("Artist infos found in cache");
-        return Some(artist_info);
+        return Ok(Some(artist_info));
+    }
+    // Search artist information from musicbrainz
+    let mb_service = state.mb.lock().await;
+    let fatv_service = state.fatv.lock().await;
+    let wiki_service = state.wiki.lock().await;
+
+    if let Ok(Some(artist_info)) = mb_service.artist_info(artist.clone()).await {
+        // Get wikipedia & images for artist
+        let (bio, images) = tokio::join!(
+            get_artist_wikipedia_data(&artist_info, wiki_service),
+            get_artist_images(&artist_info, fatv_service)
+        );
+
+        let artist_data = ArtistInfo {
+            artist: Some(artist_info),
+            images,
+            bio,
+        };
+
+        // Add artist data to cache
+        let _ = state
+            .db
+            .lock()
+            .unwrap()
+            .add_artist_cache(artist, artist_data.clone());
+
+        return Ok(Some(artist_data));
     }
 
-    // Search artist information from musicbrainz
-    match state.mb.lock().unwrap().artist_info(artist.clone()) {
-        Ok(info) => {
-            if let Some(ref artist_infos) = info {
-                // Search for wikidata url
-                // And try to retrieve artist bio information
-                let mut artist_bio: Option<String> = None;
+    Ok(None)
+}
 
-                if let Some(ref relations) = artist_infos.relations {
-                    let wikidata = relations.iter().find_map(|rel| {
-                        if rel.url_type.eq(&Some("wikidata".to_string())) {
-                            return Some(rel);
-                        }
-                        None
-                    });
+async fn get_artist_images(
+    artist_infos: &MBArtist,
+    fatv_service: tokio::sync::MutexGuard<'_, FanArtTv>,
+) -> Option<FATVArtistImages> {
+    fatv_service
+        .get_artist_images(artist_infos.id.clone())
+        .await
+        .ok()
+}
 
-                    if let Some(wiki) = wikidata {
-                        let url = wiki.clone().url;
-                        if let Some(wiki_url) = url {
-                            artist_bio = state
-                                .wiki
-                                .lock()
-                                .unwrap()
-                                .get_artist_extract(wiki_url.resource.unwrap(), None);
-                        }
-                    }
-                }
+async fn get_artist_wikipedia_data(
+    artist_infos: &MBArtist,
+    wiki_service: tokio::sync::MutexGuard<'_, Wikipedia>,
+) -> Option<String> {
+    if let Some(ref relations) = artist_infos.relations {
+        let wikidata = relations.iter().find_map(|rel| {
+            if rel.url_type.eq(&Some("wikidata".to_string())) {
+                return Some(rel);
+            }
+            None
+        });
 
-                // Search for images on fanart.tv
-                match state
-                    .fatv
-                    .lock()
-                    .unwrap()
-                    .get_artist_images(artist_infos.id.clone())
-                {
-                    Ok(images) => {
-                        let artist_info = ArtistInfo {
-                            artist: info,
-                            images: Some(images),
-                            bio: artist_bio,
-                        };
-
-                        // Add to cache
-                        let _ = state.db.lock().unwrap().add_artist_cache(artist, artist_info.clone());
-
-                        return Some(artist_info);
-                    }
-                    Err(err) => error!("{}", err),
-                }
+        if let Some(wiki) = wikidata {
+            let url = wiki.clone().url;
+            if let Some(wiki_url) = url {
+                return wiki_service
+                    .get_artist_extract(wiki_url.resource.unwrap(), None)
+                    .await;
             }
         }
-        Err(err) => error!("Error while artist info lookup {}", err),
     }
-
     None
 }

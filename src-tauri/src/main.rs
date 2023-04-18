@@ -5,52 +5,56 @@
 
 mod commands;
 mod db;
+mod fanarttv;
+mod musicbrainz;
 mod player;
 mod tuner;
-mod musicbrainz;
-mod fanarttv;
 mod wikipedia;
 
 use anyhow::Result;
 use commands::*;
 use db::Db;
+use dotenv::dotenv;
 use fanarttv::FanArtTv;
+use log::debug;
 use musicbrainz::MusicBrainz;
 use player::Player;
 use std::sync::Mutex;
 use tuner::Tuner;
-use log::debug;
-use dotenv::dotenv;
 use wikipedia::Wikipedia;
 
-
-pub const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"), " (", env!("CARGO_PKG_REPOSITORY"), ")");
-
+pub const APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("CARGO_PKG_REPOSITORY"),
+    ")"
+);
 
 pub const MUSICBRAINZ_API_ENDPOINT: &str = "https://musicbrainz.org/ws/2/";
 
 pub struct RadioState {
-    tuner: Mutex<Tuner>,
+    tuner: tokio::sync::Mutex<Tuner>,
     player: Mutex<Player>,
     db: Mutex<Db>,
-    mb: Mutex<MusicBrainz>,
-    fatv: Mutex<FanArtTv>,
-    wiki: Mutex<Wikipedia>,
+    mb: tokio::sync::Mutex<MusicBrainz>,
+    fatv: tokio::sync::Mutex<FanArtTv>,
+    wiki: tokio::sync::Mutex<Wikipedia>,
 }
-
-fn main() -> Result<()> {
-    
+#[tokio::main]
+async fn main() -> Result<()> {
     dotenv().ok();
 
     env_logger::init();
 
     let state = RadioState {
-        tuner: Mutex::new(Tuner::new()?),
+        tuner: tokio::sync::Mutex::new(Tuner::new().await?),
         player: Mutex::new(Player::new()),
         db: Mutex::new(Db::new()),
-        mb: Mutex::new(MusicBrainz::new()),
-        fatv: Mutex::new(FanArtTv::new()),
-        wiki: Mutex::new(Wikipedia::new())
+        mb: tokio::sync::Mutex::new(MusicBrainz::new()),
+        fatv: tokio::sync::Mutex::new(FanArtTv::new()),
+        wiki: tokio::sync::Mutex::new(Wikipedia::new()),
     };
 
     tauri::Builder::default()

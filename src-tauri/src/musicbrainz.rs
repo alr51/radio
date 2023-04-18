@@ -1,9 +1,9 @@
 use crate::{APP_USER_AGENT, MUSICBRAINZ_API_ENDPOINT};
 use anyhow::Result;
-use log::{debug,info};
+use log::{debug, info};
 use reqwest::{
-    blocking::{Client, ClientBuilder},
     header::{HeaderMap, HeaderValue},
+    Client, ClientBuilder,
 };
 use serde::Deserialize;
 use serde::Serialize;
@@ -27,15 +27,21 @@ impl MusicBrainz {
         Self { client }
     }
 
-    pub fn artist_info(&self, artist: String) -> Result<Option<MBArtist>> {
+    pub async fn artist_info(&self, artist: String) -> Result<Option<MBArtist>> {
         let artist_url = format!("{}artist", MUSICBRAINZ_API_ENDPOINT);
         debug!("{}", &artist_url);
         let response = self
             .client
             .get(&artist_url)
-            .query(&[("query", artist), ("limit", "1".to_string()), ("fmt","json".to_string())])
-            .send()?
-            .json::<MBArtistSearchResult>()?;
+            .query(&[
+                ("query", artist),
+                ("limit", "1".to_string()),
+                ("fmt", "json".to_string()),
+            ])
+            .send()
+            .await?
+            .json::<MBArtistSearchResult>()
+            .await?;
 
         debug!("{:?}", response);
 
@@ -45,14 +51,14 @@ impl MusicBrainz {
             debug!("detail url {}", artist_detail_url);
 
             let artist_response = self
-                .client.clone()
+                .client
                 .get(artist_detail_url)
-                .query(&[("inc", "url-rels".to_string()), ("fmt","json".to_string())])
-                .send();
+                .query(&[("inc", "url-rels".to_string()), ("fmt", "json".to_string())])
+                .send()
+                .await;
 
-
-            debug!("{:?}",artist_response);
-            let artist = artist_response?.json::<MBArtist>()?;
+            debug!("{:?}", artist_response);
+            let artist = artist_response?.json::<MBArtist>().await?;
 
             debug!("{:?}", artist);
 
@@ -87,10 +93,10 @@ pub struct MBArtist {
 pub struct MBUrlRel {
     #[serde(alias = "type")]
     pub url_type: Option<String>,
-    pub url:Option<MBUrl>, 
+    pub url: Option<MBUrl>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MBUrl {
-    pub resource:Option<String>
+    pub resource: Option<String>,
 }
