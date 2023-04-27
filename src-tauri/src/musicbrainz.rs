@@ -1,4 +1,4 @@
-use crate::{APP_USER_AGENT, MUSICBRAINZ_API_ENDPOINT};
+use crate::APP_USER_AGENT;
 use anyhow::Result;
 use log::{debug, info};
 use reqwest::{
@@ -7,6 +7,8 @@ use reqwest::{
 };
 use serde::Deserialize;
 use serde::Serialize;
+
+pub const MUSICBRAINZ_API_ENDPOINT: &str = "https://musicbrainz.org/ws/2/";
 
 pub struct MusicBrainz {
     pub client: Client,
@@ -67,6 +69,29 @@ impl MusicBrainz {
 
         Ok(None)
     }
+
+    pub async fn artist_release(&self, artist_id: String) -> Result<Option<MBReleases>> {
+        let releases_url = format!("{}release", MUSICBRAINZ_API_ENDPOINT);
+        let response = self
+            .client
+            .get(releases_url)
+            .query(&[
+                ("fmt", "json".to_string()),
+                ("artist", artist_id),
+                ("status", "official".to_string()),
+                ("type", "album".to_string()),
+                ("offset", "0".to_string()),
+                ("limit", "100".to_string()),
+            ])
+            .send()
+            .await?
+            .json::<MBReleases>()
+            .await?;
+
+        debug!("{:?}", &response);
+
+        Ok(Some(response))
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -99,4 +124,36 @@ pub struct MBUrlRel {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MBUrl {
     pub resource: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MBReleases {
+    pub releases: Option<Vec<MBRelease>>,
+    #[serde(alias = "release-offset")]
+    pub offset: u64,
+    #[serde(alias = "release-count")]
+    pub count: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MBRelease {
+    pub id: String,
+    pub date: Option<String>,
+    pub title: Option<String>,
+    pub country: Option<String>,
+    #[serde(alias = "cover-art-archive")]
+    pub cover_art_archive: Option<MBCovertArtArchive>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MBCovertArtArchive {
+    #[serde(default)]
+    pub darkened: bool,
+    #[serde(default)]
+    pub back: bool,
+    #[serde(default)]
+    pub front: bool,
+    #[serde(default)]
+    pub artwork: bool,
+    pub count: u64,
 }

@@ -19,7 +19,7 @@ tauri = { version = "1.2.4", features = ["shell-open"] }
 anyhow = "1.0.69"
 gstreamer = "0.20.2"
 trust-dns-resolver = "0.22.0"
-reqwest = { version = "0.11.14", features = ["blocking", "json"] }
+reqwest = { version = "0.11.14", features = ["json"] }
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 log = "0.4.17"
 env_logger = "0.10.0"

@@ -1,6 +1,6 @@
 use crate::{
     fanarttv::{FATVArtistImages, FanArtTv},
-    musicbrainz::MBArtist,
+    musicbrainz::{MBArtist, MBReleases},
     tuner::{Station, StationsSearchQuery},
     wikipedia::Wikipedia,
     RadioState,
@@ -216,4 +216,21 @@ async fn get_artist_wikipedia_data(
         }
     }
     None
+}
+
+#[tauri::command]
+pub async fn artist_releases(
+    state: State<'_, RadioState>,
+    artistid: String,
+) -> Result<Option<MBReleases>, ()> {
+    debug!("ARTIST RELEASES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    debug!("ARTIST ID {}", &artistid);
+
+    let mb = state.mb.lock().await;
+
+    if let Ok(releases) = mb.artist_release(artistid).await {
+        return Ok(releases);
+    }
+
+    Ok(None)
 }

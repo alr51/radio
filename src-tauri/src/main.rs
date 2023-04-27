@@ -32,8 +32,6 @@ pub const APP_USER_AGENT: &str = concat!(
     ")"
 );
 
-pub const MUSICBRAINZ_API_ENDPOINT: &str = "https://musicbrainz.org/ws/2/";
-
 pub struct RadioState {
     tuner: tokio::sync::Mutex<Tuner>,
     player: Mutex<Player>,
@@ -70,7 +68,8 @@ async fn main() -> Result<()> {
             bookmark_stations_list,
             set_volume,
             mute,
-            artist_info
+            artist_info,
+            artist_releases,
         ])
         .on_window_event(move |event| match event.event() {
             tauri::WindowEvent::CloseRequested { .. } => {
