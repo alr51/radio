@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { createResource, For, onCleanup, onMount, Show } from "solid-js";
 
 const getArtistInfos = async (artist) => {

@@ -1,5 +1,6 @@
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { onCleanup, onMount } from "solid-js";
+const appWindow = getCurrentWebviewWindow()
 
 function lerp (value1, value2, amount) {
   amount = amount < 0 ? 0 : amount;

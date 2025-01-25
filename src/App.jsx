@@ -1,6 +1,6 @@
 import { createSignal, For, onMount } from "solid-js";
-import { invoke } from "@tauri-apps/api/tauri";
-import { appWindow } from "@tauri-apps/api/window";
+import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import Station from "./station";
 import Player from "./player";
 import Search from "./Search";
@@ -11,6 +11,7 @@ import { Route, Routes } from "@solidjs/router";
 import StationsList from "./StationsList";
 import Favorites from "./Favorites";
 import Infos from "./Infos";
+const appWindow = getCurrentWebviewWindow()
 
 async function invokeStreamEvents() {
   await invoke("stream_events", { window: appWindow });

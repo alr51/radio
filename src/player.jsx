@@ -1,5 +1,5 @@
 import CurrentStation from "./CurrentStation"
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { Show } from "solid-js";
 import { HiSolidPlay, HiSolidPause, HiOutlineVolumeOff, HiOutlineVolumeUp } from "solid-icons/hi"
 import { A } from "@solidjs/router";

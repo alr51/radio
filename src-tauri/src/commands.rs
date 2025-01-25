@@ -8,6 +8,7 @@ use crate::{
 use gstreamer::{prelude::Continue, traits::ElementExt, MessageView};
 use log::{debug, info, trace};
 use serde::{Deserialize, Serialize};
+use tauri::Emitter;
 use tauri::{State, Window};
 
 #[tauri::command]

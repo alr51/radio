@@ -7,15 +7,18 @@ license = ""
 repository = "https://github.com/alr51/radio"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "radio_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "1.2.1", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["shell-open"] }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 anyhow = "1.0.69"
 gstreamer = "0.20.2"
 trust-dns-resolver = "0.22.0"
@@ -26,17 +29,10 @@ env_logger = "0.10.0"
 dotenv = "0.15.0"
 tokio = { version = "1.26.0", features = ["full"] }
 
-[features]
-# by default Tauri runs in production mode
-# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = ["custom-protocol"]
-# this feature is used used for production builds where `devPath` points to the filesystem
-# DO NOT remove this
-custom-protocol = ["tauri/custom-protocol"]
 
 [profile.release]
-panic = "abort" # Strip expensive panic clean-up logic
+panic = "abort"   # Strip expensive panic clean-up logic
 codegen-units = 1 # Compile crates one after another so the compiler can optimize better
-lto = true # Enables link to optimizations
-opt-level = "s" # Optimize for binary size
-strip = true # Remove debug symbols
+lto = true        # Enables link to optimizations
+opt-level = "s"   # Optimize for binary size
+strip = true      # Remove debug symbols
